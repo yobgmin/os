@@ -1,21 +1,7 @@
-/**
- *  file    Descriptor.c
- *  date    2009/01/16
- *  author  kkamagui 
- *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   GDT 및 IDT에 관련된 각종 디스크립터에 대한 파일
- */
-
 #include "Descriptor.h"
 #include "Utility.h"
 
-//==============================================================================
-//  GDT 및 TSS
-//==============================================================================
 
-/**
- *  GDT 테이블을 초기화
- */
 void kInitializeGDTTableAndTSS( void )
 {
     GDTR* pstGDTR;
@@ -23,15 +9,15 @@ void kInitializeGDTTableAndTSS( void )
     TSSSEGMENT* pstTSS;
     int i;
     
-    // GDTR 설정
+    // GDTR 占쏙옙占쏙옙
     pstGDTR = ( GDTR* ) GDTR_STARTADDRESS;
     pstEntry = ( GDTENTRY8* ) ( GDTR_STARTADDRESS + sizeof( GDTR ) );
     pstGDTR->wLimit = GDT_TABLESIZE - 1;
     pstGDTR->qwBaseAddress = ( QWORD ) pstEntry;
-    // TSS 영역 설정
+    // TSS 占쏙옙占쏙옙 占쏙옙占쏙옙
     pstTSS = ( TSSSEGMENT* ) ( ( QWORD ) pstEntry + GDT_TABLESIZE );
 
-    // NULL, 64비트 Code/Data, TSS를 위해 총 4개의 세그먼트를 생성한다.
+    // NULL, 64占쏙옙트 Code/Data, TSS占쏙옙 占쏙옙占쏙옙 占쏙옙 4占쏙옙占쏙옙 占쏙옙占쌓몌옙트占쏙옙 占쏙옙占쏙옙占싼댐옙.
     kSetGDTEntry8( &( pstEntry[ 0 ] ), 0, 0, 0, 0, 0 );
     kSetGDTEntry8( &( pstEntry[ 1 ] ), 0, 0xFFFFF, GDT_FLAGS_UPPER_CODE, 
             GDT_FLAGS_LOWER_KERNELCODE, GDT_TYPE_CODE );
@@ -41,14 +27,9 @@ void kInitializeGDTTableAndTSS( void )
             sizeof( TSSSEGMENT ) - 1, GDT_FLAGS_UPPER_TSS, GDT_FLAGS_LOWER_TSS, 
             GDT_TYPE_TSS ); 
     
-    // TSS 초기화 GDT 이하 영역을 사용함
     kInitializeTSSSegment( pstTSS );
 }
 
-/**
- *  8바이트 크기의 GDT 엔트리에 값을 설정
- *      코드와 데이터 세그먼트 디스크립터를 설정하는데 사용
- */
 void kSetGDTEntry8( GDTENTRY8* pstEntry, DWORD dwBaseAddress, DWORD dwLimit,
         BYTE bUpperFlags, BYTE bLowerFlags, BYTE bType )
 {
@@ -61,10 +42,6 @@ void kSetGDTEntry8( GDTENTRY8* pstEntry, DWORD dwBaseAddress, DWORD dwLimit,
     pstEntry->bUpperBaseAddress2 = ( dwBaseAddress >> 24 ) & 0xFF;
 }
 
-/**
- *  16바이트 크기의 GDT 엔트리에 값을 설정
- *      TSS 세그먼트 디스크립터를 설정하는데 사용
- */
 void kSetGDTEntry16( GDTENTRY16* pstEntry, QWORD qwBaseAddress, DWORD dwLimit,
         BYTE bUpperFlags, BYTE bLowerFlags, BYTE bType )
 {
@@ -79,38 +56,24 @@ void kSetGDTEntry16( GDTENTRY16* pstEntry, QWORD qwBaseAddress, DWORD dwLimit,
     pstEntry->dwReserved = 0;
 }
 
-/**
- *  TSS 세그먼트의 정보를 초기화
- */
 void kInitializeTSSSegment( TSSSEGMENT* pstTSS )
 {
     kMemSet( pstTSS, 0, sizeof( TSSSEGMENT ) );
     pstTSS->qwIST[ 0 ] = IST_STARTADDRESS + IST_SIZE;
-    // IO 를 TSS의 limit 값보다 크게 설정함으로써 IO Map을 사용하지 않도록 함
     pstTSS->wIOMapBaseAddress = 0xFFFF;
 }
 
-
-//==============================================================================
-//  IDT
-//==============================================================================
-/**
- *  IDT 테이블을 초기화
- */
 void kInitializeIDTTables( void )
 {
     IDTR* pstIDTR;
     IDTENTRY* pstEntry;
     int i;
         
-    // IDTR의 시작 어드레스
     pstIDTR = ( IDTR* ) IDTR_STARTADDRESS;
-    // IDT 테이블의 정보 생성
     pstEntry = ( IDTENTRY* ) ( IDTR_STARTADDRESS + sizeof( IDTR ) );
     pstIDTR->qwBaseAddress = ( QWORD ) pstEntry;
     pstIDTR->wLimit = IDT_TABLESIZE - 1;
     
-    // 0~99까지 벡터를 모두 DummyHandler로 연결
     for( i = 0 ; i < IDT_MAXENTRYCOUNT ; i++ )
     {
         kSetIDTEntry( &( pstEntry[ i ] ), kDummyHandler, 0x08, IDT_FLAGS_IST1, 
@@ -118,9 +81,6 @@ void kInitializeIDTTables( void )
     }
 }
 
-/**
- *  IDT 게이트 디스크립터에 값을 설정
- */
 void kSetIDTEntry( IDTENTRY* pstEntry, void* pvHandler, WORD wSelector, 
         BYTE bIST, BYTE bFlags, BYTE bType )
 {
@@ -134,7 +94,7 @@ void kSetIDTEntry( IDTENTRY* pstEntry, void* pvHandler, WORD wSelector,
 }
 
 /**
- *  임시 예외 또는 인터럽트 핸들러
+ *  占쌈쏙옙 占쏙옙占쏙옙 占실댐옙 占쏙옙占싶뤄옙트 占쌘들러
  */
 void kDummyHandler( void )
 {
