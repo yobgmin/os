@@ -1,30 +1,14 @@
-/**
- *  file    Keyboard.h
- *  date    2009/01/09
- *  author  kkamagui 
- *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   키보드 디바이스 드라이버 함수들을 정의한 파일
- */
-
 #ifndef __KEYBOARD_H__
 #define __KEYBOARD_H__
 
 #include "Types.h"
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// 매크로
-//
-////////////////////////////////////////////////////////////////////////////////
-// Pause 키를 처리하기 위해 무시해야 하는 나머지 스캔 코드의 수
 #define KEY_SKIPCOUNTFORPAUSE       2
 
-// 키 상태에 대한 플래그
 #define KEY_FLAGS_UP             0x00
 #define KEY_FLAGS_DOWN           0x01
 #define KEY_FLAGS_EXTENDEDKEY    0x02
 
-// 스캔 코드 매핑 테이블에 대한 매크로
 #define KEY_MAPPINGTABLEMAXCOUNT    89
 
 #define KEY_NONE        0x00
@@ -66,45 +50,44 @@
 #define KEY_F12         0x9F
 #define KEY_PAUSE       0xA0
 
+#define KEY_MAXQUEUECOUNT   100
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// 구조체
-//
-////////////////////////////////////////////////////////////////////////////////
 #pragma pack( push, 1 )
 
-// 스캔 코드 테이블을 구성하는 항목
 typedef struct kKeyMappingEntryStruct
 {
-    // Shift 키나 Caps Lock 키와 조합되지 않는 ASCII 코드
+
     BYTE bNormalCode;
-    
-    // Shift 키나 Caps Lock 키와 조합된 ASCII 코드
+
     BYTE bCombinedCode;
 } KEYMAPPINGENTRY;
 
-// 키보드의 상태를 관리하는 자료구조
 typedef struct kKeyboardManagerStruct
 {
-    // 조합 키 정보
+
     BOOL bShiftDown;
     BOOL bCapsLockOn;
     BOOL bNumLockOn;
     BOOL bScrollLockOn;
+
     
-    // 확장 키를 처리하기 위한 정보
     BOOL bExtendedCodeIn;
     int iSkipCountForPause;
 } KEYBOARDMANAGER;
 
+
+typedef struct kKeyDataStruct
+{
+    
+    BYTE bScanCode;
+    
+    BYTE bASCIICode;
+    
+    BYTE bFlags;
+} KEYDATA;
+
 #pragma pack( pop )
 
-////////////////////////////////////////////////////////////////////////////////
-//
-//  함수
-//
-////////////////////////////////////////////////////////////////////////////////
 BOOL kIsOutputBufferFull( void );
 BOOL kIsInputBufferFull( void );
 BOOL kActivateKeyboard( void );
@@ -118,6 +101,10 @@ BOOL kIsNumberPadScanCode( BYTE bScanCode );
 BOOL kIsUseCombinedCode( BOOL bScanCode );
 void UpdateCombinationKeyStatusAndLED( BYTE bScanCode );
 BOOL kConvertScanCodeToASCIICode( BYTE bScanCode, BYTE* pbASCIICode, BOOL* pbFlags );
+BOOL kInitializeKeyboard( void );
+BOOL kConvertScanCodeAndPutQueue( BYTE bScanCode );
+BOOL kGetKeyFromKeyQueue( KEYDATA* pstData );
+BOOL kWaitForACKAndPutOtherScanCode( void );
 
-#endif /*__KEYBOARD_H__*/
+#endif
 
